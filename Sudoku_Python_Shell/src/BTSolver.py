@@ -50,9 +50,21 @@ class BTSolver:
     def forwardChecking ( self ):
         assignedVars = []
 
-        self.network.constraints
+        for c in self.network.constraints:
+            for v in c.vars:
+                if v.isAssigned():
+                    assignedVars.append(v)
+                    
 
         
+        
+        while len(assignedVars) != 0:
+            var = assignedVars.pop(0)
+            for neighbor in self.network.getNeighborsOfVariableOfVariable(av):
+                    if neighbor.isChangeable and not neighbor.isAssigned() and neighbor.getDomain()
+
+        # while len(assignedVars) != 0:
+
 
 
 
