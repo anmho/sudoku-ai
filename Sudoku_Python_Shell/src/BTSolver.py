@@ -48,6 +48,14 @@ class BTSolver:
                 The bool is true if assignment is consistent, false otherwise.
     """
     def forwardChecking ( self ):
+        assignedVars = []
+
+        self.network.constraints
+
+        
+
+
+
         return ({},False)
 
     # =================================================================
@@ -94,7 +102,7 @@ class BTSolver:
 
          Completing the three tourn heuristic will automatically enter
          your program into a tournament.
-     """
+    """
     def getTournCC ( self ):
         return False
 
