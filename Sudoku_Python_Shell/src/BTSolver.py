@@ -14,14 +14,14 @@ class BTSolver:
     # ==================================================================
 
     def __init__ ( self, gb, trail, val_sh, var_sh, cc ):
-        self.network = ConstraintNetwork.ConstraintNetwork(gb)
+        self.network: ConstraintNetwork.ConstraintNetwork = ConstraintNetwork.ConstraintNetwork(gb)
         self.hassolution = False
         self.gameboard = gb
-        self.trail = trail
+        self.trail: Trail = trail
 
-        self.varHeuristics = var_sh
-        self.valHeuristics = val_sh
-        self.cChecks = cc
+        self.varHeuristics: str = var_sh
+        self.valHeuristics: str = val_sh
+        self.cChecks: str = cc
 
     # ==================================================================
     # Consistency Checks
@@ -50,7 +50,7 @@ class BTSolver:
     def forwardChecking ( self ):
         assignedVars = []
 
-        for c in self.network.constraints:
+        for c in self.network.constraintbs:
             for v in c.vars:
                 if v.isAssigned():
                     assignedVars.append(v)
@@ -61,7 +61,8 @@ class BTSolver:
         while len(assignedVars) != 0:
             var = assignedVars.pop(0)
             for neighbor in self.network.getNeighborsOfVariableOfVariable(av):
-                    if neighbor.isChangeable and not neighbor.isAssigned() and neighbor.getDomain()
+                
+                if neighbor.isChangeable and not neighbor.isAssigned() and neighbor.getDomain()
 
         # while len(assignedVars) != 0:
 
