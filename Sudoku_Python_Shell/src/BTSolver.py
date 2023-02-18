@@ -54,17 +54,51 @@ class BTSolver:
             for variable in constraint.vars:
                 if variable.isAssigned():
                     assigned_variables.append(variable)
+
+        removed_values = []
+
+        isConsistent = True
+
         while len(assigned_variables) != 0:
-            assigned_variable = assigned_variables.pop()
+            assigned_variable = assigned_variables.pop(0)
+
             for neighbor in self.network.getNeighborsOfVariable(assigned_variable):
-                if neighbor.isChangeable and not neighbor.isAssigned() and neighbor.getDomain().contains(assigned_variable.getAssignment()):
+                if neighbor.isChangeable() and not neighbor.isAssigned() and neighbor.getDomain().contains(assigned_variable.getAssignment()):
+                    
                     neighbor.removeValueFromDomain(assigned_variable.getAssignment())
                     if neighbor.domain.size() == 1:
-                        neighbor.assignValue(neighbor.domain.values[0])
-                    if neighbor.isModified() and neighbor.domain.isModified():
-                        modified_variables[neighbor] = neighbor.getDomain()
-                
-        return (modified_variables,False)
+                        row, col = neighbor.row, neighbor.col
+                        value = neighbor.domain.values[0]
+
+                        self.trail.placeTrailMarker()
+                        self.trail.push(neighbor)
+                        neighbor.assignValue(value)
+                        # print(self.network.isConsistent())
+                        if neighbor.isModified() and neighbor.domain.isModified():
+                            modified_variables[neighbor] = neighbor.getDomain()
+
+
+                        if not self.network.isConsistent():
+                            print(self.network.isConsistent(), row, col, value, self.network.toSudokuBoard(3, 3))
+                            return (modified_variables, False)
+
+                        # else:
+                        #     isConsistent = False
+
+                        # print(self.network.isConsistent(), row, col, value)
+
+                        
+                        # if self.network.isConsistent():
+                        #     print(row, col, value)
+                        #     print(self.network.toSudokuBoard(self.gameboard.p, self.gameboard.q))
+                            # neighbor.unassign()
+
+
+                        
+                    
+        # print(isConsistent)
+        print(self.network.isConsistent(), self.network.toSudokuBoard(3, 3))
+        return (modified_variables, True)
 
     # =================================================================
 	# Arc Consistency
