@@ -1,30 +1,26 @@
-from ast import Set
 import Variable
 import Constraint
 import SudokuBoard
 from math import floor
-from typing import List, Dict
 
 """
     CSP representation of the problem. Contains the variables, constraints, and
     many helpful accessors.
 """
-
-
 class ConstraintNetwork:
 
     # ==================================================================
     # Constructors
     # ==================================================================
 
-    def __init__(self, sboard=None):
-        self.constraints: List[Constraint.Constraint] = []
-        self.variables: List[Variable.Variable] = []
+    def __init__ ( self, sboard = None ):
+        self.constraints = []
+        self.variables = []
 
         if sboard != None:
-            board: SudokuBoard = sboard.board
-            temp: List[Variable.Variable] = []
-            value: int = 0
+            board = sboard.board
+            temp = []
+            value = 0
 
             for i in range(sboard.N):
                 for j in range(sboard.N):
@@ -38,13 +34,12 @@ class ConstraintNetwork:
                     else:
                         domain.append(value)
 
-                    block = int(
-                        ((floor(i/sboard.p) * sboard.p) + floor(j/sboard.q)))
-                    temp.append(Variable.Variable(domain, i, j, block))
+                    block = int(((floor(i/sboard.p) * sboard.p) + floor(j/sboard.q)))
+                    temp.append(Variable.Variable(domain,i,j,block))
 
-            rows: Dict[Variable.Variable, List] = dict()
-            cols: Dict[Variable.Variable, List] = dict()
-            blocks: Dict[Variable.Variable, List] = dict()
+            rows = dict()
+            cols = dict()
+            blocks = dict()
 
             for v in temp:
                 row = v.row
@@ -87,38 +82,38 @@ class ConstraintNetwork:
     # Modifiers
     # ==================================================================
 
-    def addConstraint(self, c: Constraint):
+    def addConstraint ( self, c ):
         if c not in self.constraints:
-            self.constraints.append(c)
+            self.constraints.append( c )
 
-    def addVariable(self, v: Variable):
+    def addVariable ( self, v ):
         if v not in self.variables:
-            self.variables.append(v)
+            self.variables.append( v )
 
     # ==================================================================
     # Accessors
     # ==================================================================
 
-    def getConstraints(self):
+    def getConstraints ( self ):
         return self.constraints
 
-    def getVariables(self):
+    def getVariables ( self ):
         return self.variables
 
     # Returns all variables that share a constraint with v
-    def getNeighborsOfVariable(self, v):
-        neighbors: Set[Variable.Variable] = set()
+    def getNeighborsOfVariable ( self, v ):
+        neighbors = set()
 
         for c in self.constraints:
-            if c.contains(v):
+            if c.contains( v ):
                 for x in c.vars:
-                    neighbors.add(x)
+                    neighbors.add( x )
 
-        neighbors.remove(v)
-        return list(neighbors)
+        neighbors.remove( v )
+        return list( neighbors )
 
     # Returns true is every constraint is consistent
-    def isConsistent(self):
+    def isConsistent ( self ):
         for c in self.constraints:
             if not c.isConsistent():
                 return False
@@ -126,15 +121,15 @@ class ConstraintNetwork:
         return True
 
     # Returns a list of constraints that contains v
-    def getConstraintsContainingVariable(self, v):
+    def getConstraintsContainingVariable ( self, v ):
         """
             @param v variable to check
             @return list of constraints that contains v
         """
         outList = []
         for c in self.constraints:
-            if c.contains(v):
-                outList.append(c)
+            if c.contains( v ):
+                outList.append( c )
         return outList
 
     """
@@ -147,15 +142,14 @@ class ConstraintNetwork:
         Note* The first call to this method returns the constraints containing
         the initialized variables.
     """
-
-    def getModifiedConstraints(self):
+    def getModifiedConstraints ( self ):
         mConstraints = []
         for c in self.constraints:
             if c.isModified():
-                mConstraints.append(c)
+                mConstraints.append( c )
 
         for v in self.variables:
-            v.setModified(False)
+            v.setModified( False )
 
         return mConstraints
 
@@ -163,7 +157,7 @@ class ConstraintNetwork:
     # String Representation
     # ==================================================================
 
-    def __str__(self):
+    def __str__ ( self ):
         output = str(len(self.variables)) + " Variables: {"
         delim = ""
 
@@ -187,9 +181,9 @@ class ConstraintNetwork:
     # Sudoku Board Representation
     # ==================================================================
 
-    def toSudokuBoard(self, p, q):
+    def toSudokuBoard ( self, p, q ):
         n = p*q
-        board = [[0 for j in range(n)] for i in range(n)]
+        board = [[ 0 for j in range( n )] for i in range( n )]
         row = 0
         col = 0
         for v in self.variables:
@@ -198,4 +192,4 @@ class ConstraintNetwork:
             if col == n:
                 col = 0
                 row += 1
-        return SudokuBoard.SudokuBoard(p, q, board=board)
+        return SudokuBoard.SudokuBoard( p, q, board = board )

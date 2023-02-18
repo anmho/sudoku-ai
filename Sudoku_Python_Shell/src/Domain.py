@@ -3,26 +3,23 @@
     variable may assign.
 """
 
-from typing import List
-
-
 class Domain:
 
     # ==================================================================
     # Constructors
     # ==================================================================
 
-    def __init__(self, value_or_values):
-        self.values: List[int] = []
-        if type(value_or_values) is int:
-            self.values.append(value_or_values)
+    def __init__ ( self, value_or_values ):
+        self.values = []
+        if type( value_or_values ) is int:
+            self.values.append( value_or_values )
 
         else:
             self.values = value_or_values
 
         self.modified = False
 
-    def copy(self, values):
+    def copy ( self, values ):
         self.values = values
 
     # ==================================================================
@@ -30,19 +27,19 @@ class Domain:
     # ==================================================================
 
     # Checks if value exists within the domain
-    def contains(self, v):
+    def contains ( self, v ):
         return v in self.values
 
     # Returns number of values in the domain
-    def size(self):
+    def size ( self ):
         return len(self.values)
 
     # Returns true if no values are contained in the domain
-    def isEmpty(self):
+    def isEmpty ( self ):
         return not self.values
 
     # Returns whether or not the domain has been modified
-    def isModified(self):
+    def isModified ( self ):
         return self.modified
 
     # ==================================================================
@@ -50,29 +47,29 @@ class Domain:
     # ==================================================================
 
     # Adds a value to the domain
-    def add(self, num):
+    def add ( self, num ):
         if num not in self.values:
-            self.values.append(num)
+            self.values.append( num )
 
     # Remove a value from the domain
-    def remove(self, num):
+    def remove ( self, num ):
         if num in self.values:
             self.modified = True
-            self.values.remove(num)
+            self.values.remove( num )
             return True
 
         else:
             return False
 
     # Sets the modified flag
-    def setModified(self, modified):
+    def setModified ( self, modified ):
         self.modified = modified
 
     # ==================================================================
     # String representation
     # ==================================================================
 
-    def __str__(self):
+    def __str__ ( self ):
         output = "{"
         for i in range(len(self.values) - 1):
             output += str(self.values[i]) + ", "

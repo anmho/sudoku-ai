@@ -95,7 +95,7 @@ class SudokuBoard:
     # Private Helper Methods
     # ==================================================================
 
-    def isValidValue ( self, row: int, col: int, value ):
+    def isValidValue ( self, row, col, value ):
         # check whether current value can be assigned to current variable
         return self.isValidColValue(col, value) and self.isValidRowValue(row, value) and self.isValidBlock(row, col, value)
 

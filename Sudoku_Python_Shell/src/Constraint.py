@@ -18,7 +18,7 @@ class Constraint:
     # Modifiers
     # ==================================================================
 
-    def addVariable ( self, v: Variable ):
+    def addVariable ( self, v ):
         self.vars.append( v )
 
     # ==================================================================
@@ -29,7 +29,7 @@ class Constraint:
         return len(self.vars)
 
     # Returns true if v is in the constraint, false otherwise
-    def contains ( self, v: Variable ):
+    def contains ( self, v ):
         return v in self.vars
 
     # Returns whether or not the a variable in the constraint has been modified
