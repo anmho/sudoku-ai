@@ -6,6 +6,7 @@ import Constraint
 import ConstraintNetwork
 import time
 import random
+from collections import deque
 
 
 class BTSolver:
@@ -23,6 +24,10 @@ class BTSolver:
         self.varHeuristics = var_sh
         self.valHeuristics = val_sh
         self.cChecks = cc
+
+        # track assigned variables here
+        self.assignedVars = deque()
+        self.arcConsistency()
 
     # ==================================================================
     # Consistency Checks
@@ -55,14 +60,16 @@ class BTSolver:
         # self.arcConsistency()
         # most recently
 
-        assignedVars = []
-        for c in self.network.constraints:
-            for v in c.vars:
-                if v.isAssigned():
-                    assignedVars.append(v)
+        # self.assignedVars = deque()
+        # for c in self.network.constraints:
+        #     for v in c.vars:
+        #         if v.isAssigned():
+        #             self.assignedVars.append(v)
 
-        while assignedVars:
-            var = assignedVars.pop(0)
+        modified_var_domains = {}
+
+        while self.assignedVars:
+            var = self.assignedVars.popleft()
 
             for neighbor in self.network.getNeighborsOfVariable(var):
                 if neighbor.isChangeable and not neighbor.isAssigned() and neighbor.getDomain().contains(var.getAssignment()):
@@ -70,104 +77,34 @@ class BTSolver:
                     self.trail.push(neighbor)
                     neighbor.removeValueFromDomain(var.getAssignment())
                     if neighbor.getDomain().size() == 1:
-                        # assign it
                         self.trail.push(neighbor)
                         neighbor.assignValue(neighbor.domain.values[0])
-                        # check it
-                        assignedVars.append(neighbor)
+                        self.assignedVars.append(neighbor)
 
                         if not self.network.isConsistent():
-                            return ({}, False)
+                            return (modified_var_domains, False)
 
-        # print(assignedVars)
-        # mostRecentlyAssigned = assignedVars.pop(0)
-        # assignedVars = [v.getAssignment() for v in assignedVars]
-        # print(assignedVars)
-        # modified = {}
+                    modified_var_domains[var] = var.getDomain()
 
-        # stack = [mostRecentlyAssigned]
-        # print(stack[0].getAssignment())
-        # print()
-        # while stack:
-        #     var = stack.pop(0)
-
-        #     for neighbor in self.network.getNeighborsOfVariable(var):
-        #         if neighbor.isChangeable and not neighbor.isAssigned() and neighbor.getDomain().contains(var.getAssignment()):
-        #             self.trail.push(var)
-        #             neighbor.removeValueFromDomain(var.getAssignment())
-        #             if neighbor.domain.size() == 1:
-        #                 self.trail.push(var)
-        #                 neighbor.assignValue(neighbor.domain.values[0])
-        #                 stack.append(neighbor)
-
-        #             if not self.network.isConsistent():
-        #                 return {{}, False}
-
-        # if not self.network.isConsistent():
-        #     print(self.network.isConsistent(), self.network.toSudokuBoard(
-        #         self.gameboard.p, self.gameboard.q))
-        #     return ({}, False)
-
-        # assigned_variables = []
-
-        # for constraint in self.network.constraints:
-        #     for variable in constraint.vars:
-        #         if variable.isAssigned():
-        #             assigned_variables.append(variable)
-
-        # modified_variables = {}
-        # print("------------------------")
-
-        # while len(assigned_variables) != 0:
-        #     var = assigned_variables.pop()
-
-        #     for neighbor in self.network.getNeighborsOfVariable(var):
-        #         if neighbor.isChangeable and not neighbor.isAssigned() and neighbor.getDomain().contains(var.getAssignment()):
-        #             self.trail.placeTrailMarker()
-        #             self.trail.push(neighbor)
-
-        #             neighbor.removeValueFromDomain(var.getAssignment())
-        #             modified_variables[neighbor] = neighbor.getDomain()
-
-        #             if neighbor.domain.size() == 1:
-        #                 row, col = neighbor.row, neighbor.col
-        #                 rows, cols = self.gameboard.p, self.gameboard.q
-        #                 value = neighbor.domain.values[0]
-        #                 self.trail.placeTrailMarker()
-        #                 self.trail.push(neighbor)
-        #                 neighbor.assignValue(value)
-        #                 assigned_variables.append(neighbor)
-
-        #                 if not self.network.isConsistent():
-        #                     print(value, row, col,
-        #                           self.network.toSudokuBoard(rows, cols))
-        #                     return (modified_variables, False)
-        #             # could be empty
-        #             #
-
-        # print(self.network.isConsistent(), self.network.toSudokuBoard(
-        #     self.gameboard.p, self.gameboard.q))
-
-        # return (modified_variables, self.network.isConsistent())
-        return ({}, True)
+        return (modified_var_domains, True)
 
     # =================================================================
         # Arc Consistency
         # =================================================================
     def arcConsistency(self):
-        assignedVars = []
+        # self.assignedVars = []
         for c in self.network.constraints:
             for v in c.vars:
                 if v.isAssigned():
-                    assignedVars.append(v)
-        while len(assignedVars) != 0:
-            av = assignedVars.pop(0)
+                    self.assignedVars.append(v)
+        while len(self.assignedVars) != 0:
+            av = self.assignedVars.popleft()
             for neighbor in self.network.getNeighborsOfVariable(av):
                 if neighbor.isChangeable and not neighbor.isAssigned() and neighbor.getDomain().contains(av.getAssignment()):
                     neighbor.removeValueFromDomain(av.getAssignment())
                     if neighbor.domain.size() == 1:
                         neighbor.assignValue(neighbor.domain.values[0])
-                        assignedVars.append(neighbor)
+                        self.assignedVars.append(neighbor)
 
     """
         Part 2 TODO: Implement both of Norvig's Heuristics
@@ -306,6 +243,8 @@ class BTSolver:
 
             # Assign the value
             v.assignValue(i)
+
+            self.assignedVars.appendleft(v)
 
             # Propagate constraints, check consistency, recur
             if self.checkConsistency():
