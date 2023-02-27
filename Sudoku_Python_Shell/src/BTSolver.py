@@ -244,7 +244,7 @@ class BTSolver:
             # Assign the value
             v.assignValue(i)
 
-            self.assignedVars.appendleft(v)
+            self.assignedVars.appendleft(v)  # changed
 
             # Propagate constraints, check consistency, recur
             if self.checkConsistency():
@@ -257,9 +257,6 @@ class BTSolver:
             if self.hassolution:
                 return 0
 
-            # remove
-            print("backtracking", self.trail.getPushCount(),
-                  self.trail.getUndoCount())
             # Otherwise backtrack
             self.trail.undo()
 
