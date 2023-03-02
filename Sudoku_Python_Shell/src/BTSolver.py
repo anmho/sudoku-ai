@@ -6,7 +6,7 @@ import Constraint
 import ConstraintNetwork
 import time
 import random
-from collections import deque
+from collections import deque, Counter
 
 
 class BTSolver:
@@ -132,7 +132,7 @@ class BTSolver:
 
          Completing the three tourn heuristic will automatically enter
          your program into a tournament.
-     """
+    """
 
     def getTournCC(self):
         return False
@@ -142,7 +142,7 @@ class BTSolver:
     # ==================================================================
 
     # Basic variable selector, returns first unassigned variable
-    def getfirstUnassignedVariable(self):
+    def getfirstUnassignedVariable(self):  # optimize
         for v in self.network.variables:
             if not v.isAssigned():
                 return v
@@ -156,8 +156,16 @@ class BTSolver:
         Return: The unassigned variable with the smallest domain
     """
 
-    def getMRV(self):
-        return None
+    def getMRV(self):  # optimize by calculating at start
+        min_domain_size = float("inf")
+        min_rem_vals_var = None
+
+        for v in self.network.variables:
+            if not v.isAssigned() and v.getDomain().size() < min_domain_size:
+                min_domain_size = v.getDomain().size()
+                min_rem_vals_var = v
+        # print(min_rem_vals_var)
+        return min_rem_vals_var
 
     """
         Part 2 TODO: Implement the Minimum Remaining Value Heuristic
@@ -169,7 +177,30 @@ class BTSolver:
     """
 
     def MRVwithTieBreaker(self):
-        return None
+        # Get min domain size
+
+        mrv_vars = [self.getMRV()]
+        if mrv_vars[0] == None:
+            return [None]
+
+        max_deg = len(self.getUnassignedNeighbors(mrv_vars[0]))
+
+        for v in self.network.variables:
+            deg = len(self.getUnassignedNeighbors(v))
+
+            if mrv_vars[0].getDomain().size() == v.getDomain().size():
+                if deg > max_deg:
+                    # reset
+                    mrv_vars = [v]
+                    max_deg = deg
+                elif deg == max_deg:
+                    # append
+                    mrv_vars.append(v)
+
+        return mrv_vars
+
+    def getUnassignedNeighbors(self, v):  # this is a custom function
+        return [neighbor for neighbor in self.network.getNeighborsOfVariable(v) if not neighbor.isAssigned()]
 
     """
          Optional TODO: Implement your own advanced Variable Heuristic
@@ -201,7 +232,25 @@ class BTSolver:
     """
 
     def getValuesLCVOrder(self, v):
-        return None
+        domain = set(v.getDomain().values)
+        value_knockout_count = Counter()  # (Value, # Neighbors knocked out)
+
+        # Count # of neighbors that match any of the values in the domain of v
+        for v in self.network.getNeighborsOfVariable(v):
+            for val in v.getDomain().values:
+                if val in domain:
+                    value_knockout_count[val] += 1
+
+        # Alternatively, bucket sort is efficient because of the constrained domains of each value is maximally the max(width, height) of the board
+
+        # print(value_knockout_count)
+        lcv_sorted_counts = sorted(
+            value_knockout_count.items(), key=lambda p: p[1])
+
+        # Get just the values from the sorted pairs
+        lcv_sorted_vals = [val for val, count in lcv_sorted_counts]
+
+        return lcv_sorted_vals
 
     """
          Optional TODO: Implement your own advanced Value Heuristic
