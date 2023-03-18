@@ -6,7 +6,8 @@ import Constraint
 import ConstraintNetwork
 import time
 import random
-from collections import deque, Counter
+from collections import deque, Counter, defaultdict
+from pprint import pprint
 
 
 class BTSolver:
@@ -26,7 +27,26 @@ class BTSolver:
         self.cChecks = cc
 
         # track assigned variables here
-        self.assignedVars = deque()
+        self.assignedVars = deque()  # should perhaps refactor this to be more clear
+
+        """ NORVIG CHECKING HELPER MEMORY"""
+        # Create a value index tracker to:
+        # 1) Track the count of each value (corresponding to the N - length of either set)
+        # 2) Retrieve in constant time the index of the variable which must have a certain value
+
+        self.N = self.gameboard.N
+
+        # for each variable
+        #   for each value in its domain
+        #       update the count in its
+
+        # self.valueIndexTracker = defaultdict(
+        #     lambda: [set([i for i in range(0, N)]) for _ in range(2)]
+        # )
+
+        # be able to undo index tracker removals for norvig (problem is memory cost blowup) # alternatively, check rows and columns for each
+        # self.assigned_cell_stack = []
+
         self.arcConsistency()
 
     # ==================================================================
@@ -57,19 +77,12 @@ class BTSolver:
     def forwardChecking(self):
         if not self.network.isConsistent():
             return ({}, False)
-        # self.arcConsistency()
-        # most recently
-
-        # self.assignedVars = deque()
-        # for c in self.network.constraints:
-        #     for v in c.vars:
-        #         if v.isAssigned():
-        #             self.assignedVars.append(v)
 
         modified_var_domains = {}
+        assignedVarsRecent = deque([self.assignedVars[0]])
 
-        while self.assignedVars:
-            var = self.assignedVars.popleft()
+        while assignedVarsRecent:
+            var = assignedVarsRecent.popleft()
 
             for neighbor in self.network.getNeighborsOfVariable(var):
                 if neighbor.isChangeable and not neighbor.isAssigned() and neighbor.getDomain().contains(var.getAssignment()):
@@ -79,7 +92,7 @@ class BTSolver:
                     if neighbor.getDomain().size() == 1:
                         self.trail.push(neighbor)
                         neighbor.assignValue(neighbor.domain.values[0])
-                        self.assignedVars.append(neighbor)
+                        assignedVarsRecent.append(neighbor)
 
                         if not self.network.isConsistent():
                             return (modified_var_domains, False)
@@ -89,22 +102,29 @@ class BTSolver:
         return (modified_var_domains, True)
 
     # =================================================================
-        # Arc Consistency
-        # =================================================================
+    # Arc Consistency
+    # =================================================================
     def arcConsistency(self):
-        # self.assignedVars = []
-        for c in self.network.constraints:
+        assigned = set()
+
+        # self.assigned_cell_stack.append([])
+        for c in self.network.constraints:  # optimize
             for v in c.vars:
-                if v.isAssigned():
+                if v.isAssigned() and (v.row, v.col) not in assigned:
                     self.assignedVars.append(v)
-        while len(self.assignedVars) != 0:
-            av = self.assignedVars.popleft()
+                    value, row, col = v.getAssignment(), v.row, v.col
+                    assigned.add((v.row, v.col))
+
+        assignedVarsCopy = self.assignedVars.copy()
+
+        while len(assignedVarsCopy) != 0:
+            av = assignedVarsCopy.popleft()
             for neighbor in self.network.getNeighborsOfVariable(av):
                 if neighbor.isChangeable and not neighbor.isAssigned() and neighbor.getDomain().contains(av.getAssignment()):
                     neighbor.removeValueFromDomain(av.getAssignment())
                     if neighbor.domain.size() == 1:
                         neighbor.assignValue(neighbor.domain.values[0])
-                        self.assignedVars.append(neighbor)
+                        assignedVarsCopy.append(neighbor)
 
     """
         Part 2 TODO: Implement both of Norvig's Heuristics
@@ -119,13 +139,109 @@ class BTSolver:
             then put the value there.
 
         Note: remember to trail.push variables before you assign them
-        Return: a pair of a dictionary and a bool. The dictionary contains all variables 
+        Return: a pair of a dictionary and a bool. The dictionary contains all variables
 		        that were ASSIGNED during the whole NorvigCheck propagation, and mapped to the values that they were assigned.
                 The bool is true if assignment is consistent, false otherwise.
     """
 
-    def norvigCheck(self):
-        return ({}, False)
+    def norvigCheck(self):  # Good time for encapsulation
+        if not self.network.isConsistent():
+            return ({}, False)
+
+        modified_var_domains = {}
+        assignedVarsRecent = deque([self.assignedVars[0]])
+
+        # assignedvals
+
+        # self.assigned_cell_stack.append([])
+        # stack of stacks
+
+        # values = set([assignedVarsRecent[0].getAssignment()])
+
+        # each row and col as a set
+
+        modified_vars = []
+
+        while assignedVarsRecent:
+            var = assignedVarsRecent.popleft()
+
+            for neighbor in self.network.getNeighborsOfVariable(var):
+                if neighbor.isChangeable and not neighbor.isAssigned() and neighbor.getDomain().contains(var.getAssignment()):
+
+                    self.trail.push(neighbor)
+                    modified_vars.append(neighbor)
+
+                    neighbor.removeValueFromDomain(var.getAssignment())
+                    if neighbor.getDomain().size() == 1:
+                        self.trail.push(neighbor)
+                        neighbor.assignValue(neighbor.domain.values[0])
+                        assignedVarsRecent.append(neighbor)
+
+                        if not self.network.isConsistent():
+                            return (modified_var_domains, False)
+
+                        # values.add(neighbor.getAssignment())
+
+                    modified_var_domains[var] = var.getDomain()
+        # print(values)
+
+        # change the self variables in constraintnetwork back
+        # find a different method
+
+        # track the counts of each rows and cols
+        # need to also backtrack the counts of each rows and cols and blocks
+
+        # get the modified var domains
+
+        # just check the modified var domains
+
+        # count each row, each col, and each block
+        # check the modified
+
+        """
+        Keep an array of hashmap of hashmaps in the class to keep track of domain counts of each row/col/block
+
+        Update counts durin arc  consistency porrtion
+
+        In Norvig, iterate over the modified domains of 
+        to check all affected rows, columns and blocks
+
+        how to reduce number of counts to check for counter[val] == 1
+
+        Use the set of modified domains to backtrack this 
+
+
+        
+        """
+
+        for units_type in self.network.units:
+
+            # count the values in each unit (ex row)
+            # should be able to do this at beginning and avoid repeated work
+
+            units = list(units_type.values())
+
+            # for unit in units_type.values():
+            for unit_index in range(self.N):
+                counter = Counter()
+                # count the frequency of each value in domains in the unit
+                for i in range(1, self.N+1):
+                    for val in units[unit_index][i-1].getDomain().values:
+                        counter[val] += 1
+
+                # find a value with a single possible location in this unit
+                # find the only variable which it can be assigned to
+                for i in range(1, self.N+1):
+                    if counter[i] == 1:
+                        # find the one domain in unit that has i for a possible value
+                        for var in units[unit_index]:
+                            if not var.isAssigned() and var.getDomain().contains(i):
+                                self.trail.push(var)
+                                var.assignValue(i)
+                                if not self.network.isConsistent():
+                                    return (modified_var_domains, False)
+
+        return (modified_var_domains, True)
 
     """
          Optional TODO: Implement your own advanced Constraint Propagation
@@ -160,18 +276,25 @@ class BTSolver:
         min_domain_size = float("inf")
         min_rem_vals_var = None
 
+        """
+        Potential Optimizations:
+        Store this as a dict[set] in the class itself. Prevent recalculation and can update as board is solved.
+        # track assigned and uniassigned varaibles
+        # use itertools to use c instead
+        """
+
         for v in self.network.variables:
             if not v.isAssigned() and v.getDomain().size() < min_domain_size:
                 min_domain_size = v.getDomain().size()
                 min_rem_vals_var = v
-        # print(min_rem_vals_var)
+
         return min_rem_vals_var
 
     """
         Part 2 TODO: Implement the Minimum Remaining Value Heuristic
                        with Degree Heuristic as a Tie Breaker
 
-        Return: The unassigned variable with the smallest domain and affecting the  most unassigned neighbors.
+        Return: The unassigned variable with the smallest domain and affecting the most unassigned neighbors.
                 If there are multiple variables that have the same smallest domain with the same number of unassigned neighbors, add them to the list of Variables.
                 If there is only one variable, return the list of size 1 containing that variable.
     """
@@ -185,7 +308,7 @@ class BTSolver:
 
         max_deg = len(self.getUnassignedNeighbors(mrv_vars[0]))
 
-        for v in self.network.variables:
+        for v in self.network.variables:  # this is kind aslow
             deg = len(self.getUnassignedNeighbors(v))
 
             if mrv_vars[0].getDomain().size() == v.getDomain().size():
@@ -200,6 +323,11 @@ class BTSolver:
         return mrv_vars
 
     def getUnassignedNeighbors(self, v):  # this is a custom function
+        """
+        Potential Optimizations:
+        Store this as a dict[set] in the class itself. Prevent recalculation and can update as board is solved.
+        Tradeoff: Memory overhead
+        """
         return [neighbor for neighbor in self.network.getNeighborsOfVariable(v) if not neighbor.isAssigned()]
 
     """
@@ -232,8 +360,13 @@ class BTSolver:
     """
 
     def getValuesLCVOrder(self, v):
+        """
+        Potential optimizations:
+        Bucket sort: O(nlogn) -> O(n)
+        """
+
         domain = set(v.getDomain().values)
-        value_knockout_count = Counter()  # (Value, # Neighbors knocked out)
+        value_knockout_count = Counter()  # (k: v) -- (Value: # Neighbors knocked out)
 
         # Count # of neighbors that match any of the values in the domain of v
         for v in self.network.getNeighborsOfVariable(v):
@@ -245,7 +378,7 @@ class BTSolver:
 
         # print(value_knockout_count)
         lcv_sorted_counts = sorted(
-            value_knockout_count.items(), key=lambda p: p[1])
+            value_knockout_count.items(), key=lambda pair: pair[1])
 
         # Get just the values from the sorted pairs
         lcv_sorted_vals = [val for val, count in lcv_sorted_counts]
@@ -285,7 +418,6 @@ class BTSolver:
 
         # Attempt to assign a value
         for i in self.getNextValues(v):
-
             # Store place in trail and push variable's state on trail
             self.trail.placeTrailMarker()
             self.trail.push(v)
@@ -294,6 +426,8 @@ class BTSolver:
             v.assignValue(i)
 
             self.assignedVars.appendleft(v)  # changed
+
+            # Optimize later
 
             # Propagate constraints, check consistency, recur
             if self.checkConsistency():
@@ -308,6 +442,16 @@ class BTSolver:
 
             # Otherwise backtrack
             self.trail.undo()
+
+            # while self.assigned_cell_stack[-1]:
+            #     row, col, val = self.assigned_cell_stack[-1].pop()
+
+            #     self.valueIndexTracker[val][0].add(row)
+            #     self.valueIndexTracker[val][1].add(col)
+
+            # self.assigned_cell_stack.pop()
+
+            # undo the index removals with a stack
 
         return 0
 

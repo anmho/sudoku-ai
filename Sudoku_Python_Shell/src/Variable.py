@@ -7,18 +7,19 @@ import Domain
 
 STATIC_NAMING_COUNTER = 1
 
+
 class Variable:
 
     # ==================================================================
     # Constructors
     # ==================================================================
 
-    def __init__ ( self, possible_Values, row, col, block ):
+    def __init__(self, possible_Values, row, col, block):
         global STATIC_NAMING_COUNTER
         self.name = "v" + str(STATIC_NAMING_COUNTER)
         STATIC_NAMING_COUNTER += 1
 
-        self.domain = Domain.Domain( possible_Values )
+        self.domain = Domain.Domain(possible_Values)
         self.row = row
         self.col = col
         self.block = block
@@ -31,7 +32,7 @@ class Variable:
             self.changeable = True
             self.assigned = False
 
-    def copy ( self, v ):
+    def copy(self, v):
         self.domain = v.domain
         self.row = v.row
         self.col = v.col
@@ -43,39 +44,39 @@ class Variable:
     # Accessors
     # ==================================================================
 
-    def isChangeable ( self ):
+    def isChangeable(self):
         return self.changeable
 
-    def isAssigned ( self ):
+    def isAssigned(self):
         return self.assigned
 
-    def isModified ( self ):
+    def isModified(self):
         return self.modified
 
-    def size ( self ):
+    def size(self):
         return self.domain.size()
 
     # Returns the assigned value or 0 if unassigned
-    def getAssignment ( self ):
+    def getAssignment(self):
         if not self.isAssigned():
             return 0
         else:
             return self.domain.values[0]
 
-    def getDomain ( self ):
+    def getDomain(self):
         return self.domain
 
-    def getName ( self ):
+    def getName(self):
         return self.name
 
-    def getValues ( self ):
+    def getValues(self):
         return self.domain.values
 
     # ==================================================================
     # Modifiers
     # ==================================================================
 
-    def setModified ( self, mod ):
+    def setModified(self, mod):
         self.modified = mod
         self.domain.modified = mod
 
@@ -83,15 +84,15 @@ class Variable:
         self.assigned = False
 
     # Assign a value to the variable
-    def assignValue ( self, val ):
+    def assignValue(self, val):
         if not self.changeable:
             return
 
         self.assigned = True
-        self.setDomain( Domain.Domain( val ) )
+        self.setDomain(Domain.Domain(val))
 
     # Sets the domain of the variable
-    def setDomain ( self, d ):
+    def setDomain(self, d):
         if not self.changeable:
             return
 
@@ -100,18 +101,18 @@ class Variable:
             self.modified = True
 
     # Removes a value from the domain
-    def removeValueFromDomain ( self, val ):
+    def removeValueFromDomain(self, val):
         if not self.changeable:
             return
 
-        self.domain.remove( val )
+        self.domain.remove(val)
         self.modified = self.domain.isModified()
 
     # ==================================================================
     # String representation
     # ==================================================================
 
-    def __str__ ( self ):
+    def __str__(self):
         # "print node stats"
         output = ""
         output += " Name: " + self.name
