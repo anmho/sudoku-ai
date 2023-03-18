@@ -36,16 +36,29 @@ class BTSolver:
 
         self.N = self.gameboard.N
 
-        # for each variable
-        #   for each value in its domain
-        #       update the count in its
+        rows = defaultdict(list)
+        cols = defaultdict(list)
+        blocks = defaultdict(list)
 
-        # self.valueIndexTracker = defaultdict(
-        #     lambda: [set([i for i in range(0, N)]) for _ in range(2)]
-        # )
+        for var in self.network.getVariables():
+            if var not in rows[var.row]:
+                rows[var.row].append(var)
 
-        # be able to undo index tracker removals for norvig (problem is memory cost blowup) # alternatively, check rows and columns for each
-        # self.assigned_cell_stack = []
+            if var not in cols[var.col]:
+                cols[var.col].append(var)
+
+            if var not in blocks[var.block]:
+                blocks[var.block].append(var)
+
+        self.units = [rows, cols, blocks]
+
+        # self.unit_domain_counts = {
+        #     # corresponding to the count for each row
+        #     "rows": defaultdict(Counter),
+        #     "cols": defaultdict(Counter),
+        #     "blocks": defaultdict(Counter)
+
+        # }
 
         self.arcConsistency()
 
@@ -214,7 +227,7 @@ class BTSolver:
         
         """
 
-        for units_type in self.network.units:
+        for units_type in self.units:  # O(NNq)
 
             # count the values in each unit (ex row)
             # should be able to do this at beginning and avoid repeated work
@@ -223,17 +236,21 @@ class BTSolver:
 
             # for unit in units_type.values():
             for unit_index in range(self.N):
+
+                # optimize
                 counter = Counter()
                 # count the frequency of each value in domains in the unit
-                for i in range(1, self.N+1):
+                for i in range(1, self.N+1):  # O(nq)
                     for val in units[unit_index][i-1].getDomain().values:
                         counter[val] += 1
 
                 # find a value with a single possible location in this unit
                 # find the only variable which it can be assigned to
-                for i in range(1, self.N+1):
+                for i in range(1, self.N+1):  # O(nq)
                     if counter[i] == 1:
                         # find the one domain in unit that has i for a possible value
+
+                        # optimize
                         for var in units[unit_index]:
                             if not var.isAssigned() and var.getDomain().contains(i):
                                 self.trail.push(var)
