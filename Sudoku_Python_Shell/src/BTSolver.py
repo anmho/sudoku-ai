@@ -357,7 +357,7 @@ class BTSolver:
         # if self.N <= 9:
         #     return self.getMRV()
 
-        return self.MRVwithTieBreaker()
+        return self.MRVwithTieBreaker()[0]
 
     # ==================================================================
     # Value Selectors
@@ -412,7 +412,7 @@ class BTSolver:
      """
 
     def getTournVal(self, v):
-        return self.getValuesLCVOrder()
+        return self.getValuesLCVOrder(v)
 
     # ==================================================================
     # Engine Functions
@@ -482,7 +482,7 @@ class BTSolver:
             return self.norvigCheck()[1]
 
         if self.cChecks == "tournCC":
-            return self.getTournCC()
+            return self.getTournCC()[1]
 
         else:
             return self.assignmentsCheck()
