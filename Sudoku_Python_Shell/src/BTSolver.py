@@ -164,14 +164,7 @@ class BTSolver:
         modified_var_domains = {}
         assignedVarsRecent = deque([self.assignedVars[0]])
 
-        # assignedvals
-
-        # self.assigned_cell_stack.append([])
-        # stack of stacks
-
-        # values = set([assignedVarsRecent[0].getAssignment()])
-
-        # each row and col as a set
+        variables_assigned = {}
 
         modified_vars = []
 
@@ -186,16 +179,18 @@ class BTSolver:
 
                     neighbor.removeValueFromDomain(var.getAssignment())
                     if neighbor.getDomain().size() == 1:
+                        value = neighbor.domain.values[0]
                         self.trail.push(neighbor)
-                        neighbor.assignValue(neighbor.domain.values[0])
+                        neighbor.assignValue(value)
+                        variables_assigned[var] = value
                         assignedVarsRecent.append(neighbor)
 
                         if not self.network.isConsistent():
-                            return (modified_var_domains, False)
+                            return (variables_assigned, False)
 
                         # values.add(neighbor.getAssignment())
 
-                    modified_var_domains[var] = var.getDomain()
+                    # modified_var_domains[var] = var.getDomain()
         # print(values)
 
         # change the self variables in constraintnetwork back
@@ -255,10 +250,11 @@ class BTSolver:
                             if not var.isAssigned() and var.getDomain().contains(i):
                                 self.trail.push(var)
                                 var.assignValue(i)
+                                variables_assigned[var] = i
                                 if not self.network.isConsistent():
-                                    return (modified_var_domains, False)
+                                    return (variables_assigned, False)
 
-        return (modified_var_domains, True)
+        return (variables_assigned, True)
 
     """
          Optional TODO: Implement your own advanced Constraint Propagation
@@ -268,7 +264,10 @@ class BTSolver:
     """
 
     def getTournCC(self):
-        return False
+        # if self.N <= 16:
+        #     return self.forwardChecking()
+
+        return self.norvigCheck()
 
     # ==================================================================
     # Variable Selectors
@@ -316,7 +315,7 @@ class BTSolver:
                 If there is only one variable, return the list of size 1 containing that variable.
     """
 
-    def MRVwithTieBreaker(self):
+    def MRVwithTieBreaker(self):  # could use a heap
         # Get min domain size
 
         mrv_vars = [self.getMRV()]
@@ -355,7 +354,10 @@ class BTSolver:
      """
 
     def getTournVar(self):
-        return None
+        # if self.N <= 9:
+        #     return self.getMRV()
+
+        return self.MRVwithTieBreaker()
 
     # ==================================================================
     # Value Selectors
@@ -410,7 +412,7 @@ class BTSolver:
      """
 
     def getTournVal(self, v):
-        return None
+        return self.getValuesLCVOrder()
 
     # ==================================================================
     # Engine Functions
